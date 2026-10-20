@@ -2,14 +2,24 @@
 
 # Base image with nginx, php-fpm and composer built on debian
 FROM wyveo/nginx-php-fpm:php74 as base
-RUN apt-get update && apt-get install -y wait-for-it libxrender1
+
+# Solución limpia para repositorios obsoletos de Debian
+RUN echo "" > /etc/apt/sources.list \
+    && echo "deb http://archive.debian.org/debian buster main" >> /etc/apt/sources.list \
+    && echo "deb http://archive.debian.org/debian-security buster/updates main" >> /etc/apt/sources.list \
+    && echo "Acquire::Check-Valid-Time \"false\";" > /etc/apt/apt.conf.d/99no-check-valid-time \
+    && rm -f /etc/apt/sources.list.d/php.list \
+    && rm -f /etc/apt/sources.list.d/nginx.list
+
+RUN apt-get update && apt-get install -y --allow-unauthenticated wait-for-it libxrender1
 
 # Set up code
 WORKDIR /usr/share/nginx/html
 COPY . .
 
 # run composer, chmod files, setup laravel key
-RUN ./scripts/setup
+RUN composer install --no-interaction --prefer-dist --optimize-autoloader \
+    && chmod -R 777 storage bootstrap/cache
 
 # The worker container runs the laravel queue in the background
 FROM base as worker
@@ -35,6 +45,3 @@ EXPOSE 443
 
 # Starting nginx server
 CMD ["/start.sh"]
-
-# NOTE: if you are deploying to production with this image, you should extend this Dockerfile with another stage that
-# performs clean up (i.e. removing composer) and installs your own dependencies (i.e. your own ssl certificate).

@@ -1,3 +1,74 @@
+1.Puesta en marcha de Attendize 
+
+-1.1 Instalación App Attendize Despiligue en Local:
+	1.Repositorio Oficial de Attendize:
+		https://github.com/Attendize/Attendize 
+	2.Versión v2.8.0. 
+	3.Requisitos Previos:
+		 Docker Desktop 
+		 Git y terminal Git Bash. 
+		 Sistema operativo anfitrión: Windows / Linux / macOS.
+
+-1.2 Arquitectura y Servicios El entorno se compone de cuatro contenedores interconectados: 
+
+    • Web (Nginx + PHP): Servidor y motor de la aplicación Laravel. 
+    • MySQL: Base de datos relacional para guardar organizadores, eventos y usuarios con persistencia.
+    • Redis: Caché en memoria para optimizar el rendimiento y colas de trabajo.
+    • Maildev: Servidor SMTP local para capturar y probar los correos salientes.
+
+  2.Instrucciones 
+
+-2.1 GitHub en el repositorio oficial y pulsar Fork, cread una copia en vuestro gitHub individual. Acceso como Public para poder acceder al repositorio desde el exterior.
+-2.2 Clonar copia sustituyendo el usuario por el nombre de la cuenta que contiene el fork, utilizar estos comandos en Git Bah:
+    • git clone https://github.com/USUARIO/Attendize.git 
+    • cd Attendize git remote add upstream https://github.com/Attendize/Attendize.git 
+    • git fetch upstream --tags 
+-2.3 Observar la versión de partida y partir de la etiqueta v2.8.0 y cread una rama, utilizar estos comandos en Git Bash:
+    • git checkout v2.8.0 
+    • git switch -c tarea-01-despliegue 
+    • git tag tarea-01-inicio 
+    • git push -u origin tarea-01-despliegue 
+    • git push origin tarea-01-inicio  
+-2.4 Preparar la configuración según el sistema operativo con el que se trabaje, se comprobara que Docker está iniciado. Se ha generado el archivo .env a partir de .env.example, configurando DB_HOST=db para conectar correctamente con el contenedor de MySQL dentro de la red interna de Docker. No se han incluido credenciales reales en el control de versiones. Comandos Git Bash:
+    • Copy-Item .env.example .env # PowerShell 
+    • cp .env.example .env # Linux, macOS o Git Bash 
+    • docker version 
+    • docker compose version 
+-2.5 Construir las imagenes  en dockers, se ejecutara desde la raíz del repositorio las mismas construcciones que declara Makelife. Utilizar estos comandos en Git Bash:
+    • docker build --tag attendize_base --target base . 
+    • docker build --tag attendize_worker --target worker --cache-from attendize_base:latest . 
+    • docker build --tag attendize_web --target web --cache-from attendize_worker:latest . 
+-2.6 Iniciar los servicios en dockers y compobad el estado de los contenedores. Utilizar estos comandos:
+    • docker compose up -d 
+    • docker compose ps 
+-2.7 Preparar Laravel y MySQL, esperar a que la base de datos acepte las conexiones y general la clave y ejecutad la migración desde el contenedor web. Utilizar este comando en Git Bash:
+    • docker compose exec web sh -c "wait-for-it db:3306 -t 180 && php artisan key:generate && php artisan migrate" 
+-2.8 Completar la instalación en local abriendo con https://localhost:8081/install, aceptar los certificado en local y completar el asistente con datos.
+-2.9 Comprobar la persistencia de la App Attendize, creando un organizador y evento. Detened los servicios e iniciarlos de nuevo y verificar que los datos continúan disponibles. Utilizando estos comandos en Git Bash:
+    • docker compose stop 
+    • docker compose start 
+    • docker compose ps 
+-2.10 Registrar la versión entregada en un Readme, guardar cambios y cread etiquetas finales, utilizando estos comandos en Git Bash.
+    • git status 
+    • git add . 
+    • git commit -m "Tarea 1: despliegue local reproducible de Attendize" 
+    • git push origin tarea-01-despliegue 
+    • git tag tarea-01-entrega 
+    • git push origin tarea-01-entrega 
+-2.11 Comprobaciones obligatorias para verificar el funcionamiento de Attendize:
+    • Contenedores: Los servicios necesarios aparecen iniciados en docker compose ps y no existe un reinicio continuo. 
+    • Navegador: Attendize abre mediante HTTPS en el puerto indicado y permite iniciar sesión. 
+    • MySQL: La aplicación accede a la base de datos y permite guardar un evento ficticio. 
+    • Persistencia: El evento sigue disponible después de docker compose stop y docker compose start. 
+    • Reproducibilidad: Otra persona puede clonar la etiqueta de entrega y seguir el README. 
+    • Seguridad: El repositorio no contiene .env, contraseñas, claves privadas ni datos personales reales. 
+
+	
+
+
+
+
+
 *Attendize* is an open-source ticketing and event management application built using the Laravel PHP framework. Attendize allows event organisers to sell tickets to their events and manage attendees without paying service fees to third party ticketing companies.
 
 <p align="center">
