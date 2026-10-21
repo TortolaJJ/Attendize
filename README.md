@@ -1,68 +1,431 @@
-1.Puesta en marcha de Attendize 
+# Attendize — Despliegue local v2.8.0
 
--1.1 Instalación App Attendize Despiligue en Local:
-	1.Repositorio Oficial de Attendize:
-		https://github.com/Attendize/Attendize 
-	2.Versión v2.8.0. 
-	3.Requisitos Previos:
-		 Docker Desktop 
-		 Git y terminal Git Bash. 
-		 Sistema operativo anfitrión: Windows / Linux / macOS.
+Despliegue y puesta en marcha de **Attendize v2.8.0** en un entorno local utilizando Docker.
 
--1.2 Arquitectura y Servicios El entorno se compone de cuatro contenedores interconectados: 
+El objetivo de esta tarea es disponer de una instalación reproducible de Attendize, con persistencia de datos y todos los servicios necesarios ejecutándose mediante contenedores Docker.
 
-    • Web (Nginx + PHP): Servidor y motor de la aplicación Laravel. 
-    • MySQL: Base de datos relacional para guardar organizadores, eventos y usuarios con persistencia.
-    • Redis: Caché en memoria para optimizar el rendimiento y colas de trabajo.
-    • Maildev: Servidor SMTP local para capturar y probar los correos salientes.
+---
 
-  2.Instrucciones 
+## 1. Puesta en marcha de Attendize
 
--2.1 GitHub en el repositorio oficial y pulsar Fork, cread una copia en vuestro gitHub individual. Acceso como Public para poder acceder al repositorio desde el exterior.
--2.2 Clonar copia sustituyendo el usuario por el nombre de la cuenta que contiene el fork, utilizar estos comandos en Git Bah:
-    • git clone https://github.com/USUARIO/Attendize.git 
-    • cd Attendize git remote add upstream https://github.com/Attendize/Attendize.git 
-    • git fetch upstream --tags 
--2.3 Observar la versión de partida y partir de la etiqueta v2.8.0 y cread una rama, utilizar estos comandos en Git Bash:
-    • git checkout v2.8.0 
-    • git switch -c tarea-01-despliegue 
-    • git tag tarea-01-inicio 
-    • git push -u origin tarea-01-despliegue 
-    • git push origin tarea-01-inicio  
--2.4 Preparar la configuración según el sistema operativo con el que se trabaje, se comprobara que Docker está iniciado. Se ha generado el archivo .env a partir de .env.example, configurando DB_HOST=db para conectar correctamente con el contenedor de MySQL dentro de la red interna de Docker. No se han incluido credenciales reales en el control de versiones. Comandos Git Bash:
-    • Copy-Item .env.example .env # PowerShell 
-    • cp .env.example .env # Linux, macOS o Git Bash 
-    • docker version 
-    • docker compose version 
--2.5 Construir las imagenes  en dockers, se ejecutara desde la raíz del repositorio las mismas construcciones que declara Makelife. Utilizar estos comandos en Git Bash:
-    • docker build --tag attendize_base --target base . 
-    • docker build --tag attendize_worker --target worker --cache-from attendize_base:latest . 
-    • docker build --tag attendize_web --target web --cache-from attendize_worker:latest . 
--2.6 Iniciar los servicios en dockers y compobad el estado de los contenedores. Utilizar estos comandos:
-    • docker compose up -d 
-    • docker compose ps 
--2.7 Preparar Laravel y MySQL, esperar a que la base de datos acepte las conexiones y general la clave y ejecutad la migración desde el contenedor web. Utilizar este comando en Git Bash:
-    • docker compose exec web sh -c "wait-for-it db:3306 -t 180 && php artisan key:generate && php artisan migrate" 
--2.8 Completar la instalación en local abriendo con https://localhost:8081/install, aceptar los certificado en local y completar el asistente con datos.
--2.9 Comprobar la persistencia de la App Attendize, creando un organizador y evento. Detened los servicios e iniciarlos de nuevo y verificar que los datos continúan disponibles. Utilizando estos comandos en Git Bash:
-    • docker compose stop 
-    • docker compose start 
-    • docker compose ps 
--2.10 Registrar la versión entregada en un Readme, guardar cambios y cread etiquetas finales, utilizando estos comandos en Git Bash.
-    • git status 
-    • git add . 
-    • git commit -m "Tarea 1: despliegue local reproducible de Attendize" 
-    • git push origin tarea-01-despliegue 
-    • git tag tarea-01-entrega 
-    • git push origin tarea-01-entrega 
--2.11 Comprobaciones obligatorias para verificar el funcionamiento de Attendize:
-    • Contenedores: Los servicios necesarios aparecen iniciados en docker compose ps y no existe un reinicio continuo. 
-    • Navegador: Attendize abre mediante HTTPS en el puerto indicado y permite iniciar sesión. 
-    • MySQL: La aplicación accede a la base de datos y permite guardar un evento ficticio. 
-    • Persistencia: El evento sigue disponible después de docker compose stop y docker compose start. 
-    • Reproducibilidad: Otra persona puede clonar la etiqueta de entrega y seguir el README. 
-    • Seguridad: El repositorio no contiene .env, contraseñas, claves privadas ni datos personales reales. 
+### 1.1 Instalación de Attendize en local
 
+Para realizar el despliegue se utiliza el repositorio oficial de Attendize:
+
+- **Repositorio:** https://github.com/Attendize/Attendize
+- **Versión:** `v2.8.0`
+
+### Requisitos previos
+
+Antes de comenzar es necesario disponer de:
+
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/)
+- Git
+- Git Bash
+- Sistema operativo anfitrión:
+  - Windows
+  - Linux
+  - macOS
+
+---
+
+## 1.2 Arquitectura y servicios
+
+El entorno de Attendize está compuesto por **cuatro contenedores interconectados**:
+
+| Servicio | Descripción |
+|---|---|
+| **Web** | Nginx + PHP. Servidor y motor de la aplicación Laravel. |
+| **MySQL** | Base de datos relacional para almacenar organizadores, eventos y usuarios. |
+| **Redis** | Sistema de caché en memoria utilizado para mejorar el rendimiento y gestionar colas de trabajo. |
+| **Maildev** | Servidor SMTP local para capturar y probar los correos electrónicos enviados por la aplicación. |
+
+Todos los servicios se ejecutan dentro de la red interna de Docker.
+
+---
+
+# 2. Instrucciones de despliegue
+
+## 2.1 Crear un Fork del repositorio
+
+Acceder al repositorio oficial de Attendize:
+
+https://github.com/Attendize/Attendize
+
+Pulsar sobre **Fork** para crear una copia del repositorio en la cuenta personal de GitHub.
+
+El repositorio deberá configurarse como **Public**, de forma que pueda ser accesible desde el exterior.
+
+---
+
+## 2.2 Clonar el repositorio
+
+Clonar el Fork utilizando Git Bash.
+
+Sustituir `USUARIO` por el nombre de usuario de GitHub que contiene el Fork:
+
+```bash
+git clone https://github.com/USUARIO/Attendize.git
+cd Attendize
+```
+
+Añadir el repositorio oficial como `upstream`:
+
+```bash
+git remote add upstream https://github.com/Attendize/Attendize.git
+git fetch upstream --tags
+```
+
+De esta forma se mantiene la posibilidad de consultar las versiones y cambios del repositorio original.
+
+---
+
+## 2.3 Seleccionar la versión v2.8.0 y crear la rama de trabajo
+
+Partimos de la etiqueta oficial `v2.8.0`:
+
+```bash
+git checkout v2.8.0
+```
+
+Crear la rama correspondiente a la tarea:
+
+```bash
+git switch -c tarea-01-despliegue
+```
+
+Crear una etiqueta para identificar el estado inicial:
+
+```bash
+git tag tarea-01-inicio
+```
+
+Subir la rama y la etiqueta al repositorio personal:
+
+```bash
+git push -u origin tarea-01-despliegue
+git push origin tarea-01-inicio
+```
+
+---
+
+## 2.4 Preparar la configuración
+
+Antes de iniciar los contenedores es necesario comprobar que Docker está correctamente instalado y funcionando.
+
+### Crear el archivo `.env`
+
+El archivo `.env` se genera a partir de `.env.example`.
+
+### Windows / PowerShell
+
+```powershell
+Copy-Item .env.example .env
+```
+
+### Linux, macOS o Git Bash
+
+```bash
+cp .env.example .env
+```
+
+La configuración de la aplicación debe utilizar:
+
+```env
+DB_HOST=db
+```
+
+El valor `db` permite que Laravel se conecte al contenedor de MySQL mediante la red interna de Docker.
+
+> **Importante:** el archivo `.env` contiene configuración sensible y **no debe subirse al repositorio**.
+
+Comprobar que Docker está correctamente instalado:
+
+```bash
+docker version
+docker compose version
+```
+
+---
+
+## 2.5 Construir las imágenes Docker
+
+Desde la raíz del repositorio se construyen las imágenes siguiendo las etapas definidas en el `Dockerfile`.
+
+### Imagen base
+
+```bash
+docker build --tag attendize_base --target base .
+```
+
+### Imagen worker
+
+```bash
+docker build --tag attendize_worker --target worker --cache-from attendize_base:latest .
+```
+
+### Imagen web
+
+```bash
+docker build --tag attendize_web --target web --cache-from attendize_worker:latest .
+```
+
+Una vez finalizado el proceso, las imágenes necesarias estarán disponibles localmente.
+
+---
+
+## 2.6 Iniciar los servicios
+
+Iniciar todos los servicios mediante Docker Compose:
+
+```bash
+docker compose up -d
+```
+
+Comprobar el estado de los contenedores:
+
+```bash
+docker compose ps
+```
+
+Los servicios necesarios deberán aparecer correctamente iniciados y no deberá existir ningún contenedor reiniciándose continuamente.
+
+---
+
+## 2.7 Preparar Laravel y MySQL
+
+Es necesario esperar a que MySQL esté preparado para aceptar conexiones.
+
+Desde el contenedor `web`, ejecutar:
+
+```bash
+docker compose exec web sh -c "wait-for-it db:3306 -t 180 && php artisan key:generate && php artisan migrate"
+```
+
+Este comando realiza las siguientes operaciones:
+
+1. Espera a que MySQL esté disponible.
+2. Genera la clave de aplicación de Laravel.
+3. Ejecuta las migraciones de la base de datos.
+
+---
+
+## 2.8 Completar la instalación de Attendize
+
+Una vez iniciados los servicios y preparada la base de datos, abrir el navegador y acceder a:
+
+```text
+https://localhost:8081/install
+```
+
+> **Nota:** al utilizar HTTPS en local, el navegador puede mostrar un aviso relacionado con el certificado. Es necesario aceptar el certificado local para continuar.
+
+Completar el asistente de instalación proporcionando los datos solicitados.
+
+Al finalizar, la aplicación deberá estar disponible y permitir iniciar sesión.
+
+---
+
+# 3. Comprobación de persistencia
+
+Para comprobar que los datos de Attendize se almacenan correctamente:
+
+1. Acceder a la aplicación.
+2. Crear un **organizador**.
+3. Crear un **evento ficticio** asociado al organizador.
+4. Comprobar que el evento aparece correctamente.
+
+A continuación, detener los servicios:
+
+```bash
+docker compose stop
+```
+
+Volver a iniciarlos:
+
+```bash
+docker compose start
+```
+
+Comprobar nuevamente el estado:
+
+```bash
+docker compose ps
+```
+
+Volver a acceder a Attendize y comprobar que el organizador y el evento siguen disponibles.
+
+Esto permite verificar que los datos de MySQL mantienen su persistencia aunque los contenedores sean detenidos y posteriormente iniciados.
+
+---
+
+# 4. Entrega y versionado
+
+Una vez realizadas todas las comprobaciones, revisar los cambios:
+
+```bash
+git status
+```
+
+Añadir los archivos modificados:
+
+```bash
+git add .
+```
+
+Crear el commit de la tarea:
+
+```bash
+git commit -m "Tarea 1: despliegue local reproducible de Attendize"
+```
+
+Subir la rama al repositorio:
+
+```bash
+git push origin tarea-01-despliegue
+```
+
+Crear la etiqueta final de entrega:
+
+```bash
+git tag tarea-01-entrega
+```
+
+Subir la etiqueta:
+
+```bash
+git push origin tarea-01-entrega
+```
+
+---
+
+# 5. Comprobaciones obligatorias
+
+Antes de dar por finalizada la tarea, comprobar los siguientes puntos:
+
+### 🐳 Contenedores
+
+- [ ] Los servicios necesarios aparecen iniciados en `docker compose ps`.
+- [ ] No existe ningún contenedor en un ciclo continuo de reinicios.
+- [ ] Los cuatro servicios están correctamente conectados.
+
+### 🌐 Navegador
+
+- [ ] Attendize es accesible mediante HTTPS.
+- [ ] La aplicación responde en el puerto `8081`.
+- [ ] Se puede acceder al sistema e iniciar sesión.
+
+### 🗄️ MySQL
+
+- [ ] Laravel puede conectarse correctamente a MySQL.
+- [ ] Las migraciones se ejecutan correctamente.
+- [ ] Se puede crear un organizador.
+- [ ] Se puede crear y guardar un evento ficticio.
+
+### 💾 Persistencia
+
+- [ ] Se ha creado correctamente un evento.
+- [ ] Se han detenido los servicios con `docker compose stop`.
+- [ ] Se han iniciado nuevamente con `docker compose start`.
+- [ ] El evento continúa disponible después del reinicio.
+
+### 🔄 Reproducibilidad
+
+- [ ] El repositorio contiene las instrucciones necesarias para realizar el despliegue.
+- [ ] La etiqueta `tarea-01-entrega` identifica la versión final.
+- [ ] Otra persona puede clonar el repositorio y seguir las instrucciones del README para reproducir el entorno.
+
+### 🔐 Seguridad
+
+- [ ] El archivo `.env` no está incluido en el repositorio.
+- [ ] No se han subido contraseñas reales.
+- [ ] No se han subido claves privadas.
+- [ ] No se han incluido datos personales reales.
+- [ ] La configuración sensible se mantiene fuera del control de versiones.
+
+---
+
+# 6. Estructura de ramas y etiquetas
+
+Durante el desarrollo se utilizan las siguientes referencias:
+
+| Referencia | Descripción |
+|---|---|
+| `v2.8.0` | Versión oficial de partida de Attendize. |
+| `tarea-01-despliegue` | Rama utilizada para realizar la tarea. |
+| `tarea-01-inicio` | Estado inicial de la tarea a partir de `v2.8.0`. |
+| `tarea-01-entrega` | Versión final entregada. |
+
+---
+
+# 7. Resumen del proceso
+
+El proceso completo de despliegue es:
+
+```text
+Repositorio oficial
+       │
+       ▼
+     Fork
+       │
+       ▼
+    Clone
+       │
+       ▼
+  v2.8.0
+       │
+       ▼
+tarea-01-despliegue
+       │
+       ▼
+Configuración .env
+       │
+       ▼
+Construcción Docker
+       │
+       ▼
+Docker Compose
+       │
+       ├── Web (Nginx + PHP)
+       ├── MySQL
+       ├── Redis
+       └── Maildev
+       │
+       ▼
+Migraciones Laravel
+       │
+       ▼
+Instalación Attendize
+       │
+       ▼
+Creación de organizador y evento
+       │
+       ▼
+Prueba de persistencia
+       │
+       ▼
+tarea-01-entrega
+```
+
+---
+
+# 8. Resultado esperado
+
+Al finalizar la tarea se debe disponer de una instalación local y reproducible de **Attendize v2.8.0**, ejecutándose mediante Docker y con:
+
+- Aplicación web funcionando mediante HTTPS.
+- Laravel correctamente configurado.
+- MySQL operativo y persistente.
+- Redis disponible para caché y colas.
+- Maildev disponible para pruebas de correo.
+- Datos persistentes después de detener y volver a iniciar los contenedores.
+- Rama `tarea-01-despliegue` subida a GitHub.
+- Etiqueta `tarea-01-inicio` correspondiente al estado inicial.
+- Etiqueta `tarea-01-entrega` correspondiente a la versión final.
+- Sin credenciales, claves privadas ni datos personales reales en el repositorio.
+
+**Versión de Attendize:** `v2.8.0`  
+**Tarea:** `01 - Despliegue local reproducible`
 	
 
 
