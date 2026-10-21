@@ -1,4 +1,4 @@
-# Attendize — Despliegue local v2.8.0
+Attendize — Despliegue local v2.8.0
 
 Despliegue y puesta en marcha de **Attendize v2.8.0** en un entorno local utilizando Docker.
 
@@ -6,16 +6,16 @@ El objetivo de esta tarea es disponer de una instalación reproducible de Attend
 
 ---
 
-## 1. Puesta en marcha de Attendize
+1. Puesta en marcha de Attendize
 
-### 1.1 Instalación de Attendize en local
+1.1 Instalación de Attendize en local
 
 Para realizar el despliegue se utiliza el repositorio oficial de Attendize:
 
 - **Repositorio:** https://github.com/Attendize/Attendize
 - **Versión:** `v2.8.0`
 
-### Requisitos previos
+Requisitos previos
 
 Antes de comenzar es necesario disponer de:
 
@@ -29,7 +29,7 @@ Antes de comenzar es necesario disponer de:
 
 ---
 
-## 1.2 Arquitectura y servicios
+1.2 Arquitectura y servicios
 
 El entorno de Attendize está compuesto por **cuatro contenedores interconectados**:
 
@@ -44,9 +44,9 @@ Todos los servicios se ejecutan dentro de la red interna de Docker.
 
 ---
 
-# 2. Instrucciones de despliegue
+2. Instrucciones de despliegue
 
-## 2.1 Crear un Fork del repositorio
+2.1 Crear un Fork del repositorio
 
 Acceder al repositorio oficial de Attendize:
 
@@ -58,7 +58,7 @@ El repositorio deberá configurarse como **Public**, de forma que pueda ser acce
 
 ---
 
-## 2.2 Clonar el repositorio
+2.2 Clonar el repositorio
 
 Clonar el Fork utilizando Git Bash.
 
@@ -80,7 +80,7 @@ De esta forma se mantiene la posibilidad de consultar las versiones y cambios de
 
 ---
 
-## 2.3 Seleccionar la versión v2.8.0 y crear la rama de trabajo
+2.3 Seleccionar la versión v2.8.0 y crear la rama de trabajo
 
 Partimos de la etiqueta oficial `v2.8.0`:
 
@@ -109,21 +109,21 @@ git push origin tarea-01-inicio
 
 ---
 
-## 2.4 Preparar la configuración
+2.4 Preparar la configuración
 
 Antes de iniciar los contenedores es necesario comprobar que Docker está correctamente instalado y funcionando.
 
-### Crear el archivo `.env`
+Crear el archivo `.env`
 
 El archivo `.env` se genera a partir de `.env.example`.
 
-### Windows / PowerShell
+Windows / PowerShell
 
 ```powershell
 Copy-Item .env.example .env
 ```
 
-### Linux, macOS o Git Bash
+Linux, macOS o Git Bash
 
 ```bash
 cp .env.example .env
@@ -137,7 +137,7 @@ DB_HOST=db
 
 El valor `db` permite que Laravel se conecte al contenedor de MySQL mediante la red interna de Docker.
 
-> **Importante:** el archivo `.env` contiene configuración sensible y **no debe subirse al repositorio**.
+> Importante: el archivo `.env` contiene configuración sensible y **no debe subirse al repositorio**.
 
 Comprobar que Docker está correctamente instalado:
 
@@ -148,23 +148,23 @@ docker compose version
 
 ---
 
-## 2.5 Construir las imágenes Docker
+2.5 Construir las imágenes Docker
 
 Desde la raíz del repositorio se construyen las imágenes siguiendo las etapas definidas en el `Dockerfile`.
 
-### Imagen base
+Imagen base
 
 ```bash
 docker build --tag attendize_base --target base .
 ```
 
-### Imagen worker
+Imagen worker
 
 ```bash
 docker build --tag attendize_worker --target worker --cache-from attendize_base:latest .
 ```
 
-### Imagen web
+Imagen web
 
 ```bash
 docker build --tag attendize_web --target web --cache-from attendize_worker:latest .
@@ -174,7 +174,7 @@ Una vez finalizado el proceso, las imágenes necesarias estarán disponibles loc
 
 ---
 
-## 2.6 Iniciar los servicios
+2.6 Iniciar los servicios
 
 Iniciar todos los servicios mediante Docker Compose:
 
@@ -192,7 +192,7 @@ Los servicios necesarios deberán aparecer correctamente iniciados y no deberá 
 
 ---
 
-## 2.7 Preparar Laravel y MySQL
+2.7 Preparar Laravel y MySQL
 
 Es necesario esperar a que MySQL esté preparado para aceptar conexiones.
 
@@ -210,7 +210,7 @@ Este comando realiza las siguientes operaciones:
 
 ---
 
-## 2.8 Completar la instalación de Attendize
+2.8 Completar la instalación de Attendize
 
 Una vez iniciados los servicios y preparada la base de datos, abrir el navegador y acceder a:
 
@@ -218,7 +218,7 @@ Una vez iniciados los servicios y preparada la base de datos, abrir el navegador
 https://localhost:8081/install
 ```
 
-> **Nota:** al utilizar HTTPS en local, el navegador puede mostrar un aviso relacionado con el certificado. Es necesario aceptar el certificado local para continuar.
+> Nota: al utilizar HTTPS en local, el navegador puede mostrar un aviso relacionado con el certificado. Es necesario aceptar el certificado local para continuar.
 
 Completar el asistente de instalación proporcionando los datos solicitados.
 
@@ -226,7 +226,7 @@ Al finalizar, la aplicación deberá estar disponible y permitir iniciar sesión
 
 ---
 
-# 3. Comprobación de persistencia
+3. Comprobación de persistencia
 
 Para comprobar que los datos de Attendize se almacenan correctamente:
 
@@ -259,7 +259,7 @@ Esto permite verificar que los datos de MySQL mantienen su persistencia aunque l
 
 ---
 
-# 4. Entrega y versionado
+4. Entrega y versionado
 
 Una vez realizadas todas las comprobaciones, revisar los cambios:
 
@@ -299,53 +299,53 @@ git push origin tarea-01-entrega
 
 ---
 
-# 5. Comprobaciones obligatorias
+5. Comprobaciones obligatorias
 
 Antes de dar por finalizada la tarea, comprobar los siguientes puntos:
 
-### 🐳 Contenedores
+Contenedores
 
-- [ ] Los servicios necesarios aparecen iniciados en `docker compose ps`.
-- [ ] No existe ningún contenedor en un ciclo continuo de reinicios.
-- [ ] Los cuatro servicios están correctamente conectados.
+- Los servicios necesarios aparecen iniciados en `docker compose ps`.
+- No existe ningún contenedor en un ciclo continuo de reinicios.
+- Los cuatro servicios están correctamente conectados.
 
-### 🌐 Navegador
+Navegador
 
-- [ ] Attendize es accesible mediante HTTPS.
-- [ ] La aplicación responde en el puerto `8081`.
-- [ ] Se puede acceder al sistema e iniciar sesión.
+- Attendize es accesible mediante HTTPS.
+- La aplicación responde en el puerto `8081`.
+- Se puede acceder al sistema e iniciar sesión.
 
-### 🗄️ MySQL
+MySQL
 
-- [ ] Laravel puede conectarse correctamente a MySQL.
-- [ ] Las migraciones se ejecutan correctamente.
-- [ ] Se puede crear un organizador.
-- [ ] Se puede crear y guardar un evento ficticio.
+- Laravel puede conectarse correctamente a MySQL.
+- Las migraciones se ejecutan correctamente.
+- Se puede crear un organizador.
+- Se puede crear y guardar un evento ficticio.
 
-### 💾 Persistencia
+Persistencia
 
-- [ ] Se ha creado correctamente un evento.
-- [ ] Se han detenido los servicios con `docker compose stop`.
-- [ ] Se han iniciado nuevamente con `docker compose start`.
-- [ ] El evento continúa disponible después del reinicio.
+- Se ha creado correctamente un evento.
+- Se han detenido los servicios con `docker compose stop`.
+- Se han iniciado nuevamente con `docker compose start`.
+- El evento continúa disponible después del reinicio.
 
-### 🔄 Reproducibilidad
+Reproducibilidad
 
-- [ ] El repositorio contiene las instrucciones necesarias para realizar el despliegue.
-- [ ] La etiqueta `tarea-01-entrega` identifica la versión final.
-- [ ] Otra persona puede clonar el repositorio y seguir las instrucciones del README para reproducir el entorno.
+- El repositorio contiene las instrucciones necesarias para realizar el despliegue.
+- La etiqueta `tarea-01-entrega` identifica la versión final.
+- Otra persona puede clonar el repositorio y seguir las instrucciones del README para reproducir el entorno.
 
-### 🔐 Seguridad
+Seguridad
 
-- [ ] El archivo `.env` no está incluido en el repositorio.
-- [ ] No se han subido contraseñas reales.
-- [ ] No se han subido claves privadas.
-- [ ] No se han incluido datos personales reales.
-- [ ] La configuración sensible se mantiene fuera del control de versiones.
+- El archivo `.env` no está incluido en el repositorio.
+- No se han subido contraseñas reales.
+- No se han subido claves privadas.
+- No se han incluido datos personales reales.
+- La configuración sensible se mantiene fuera del control de versiones.
 
 ---
 
-# 6. Estructura de ramas y etiquetas
+6. Estructura de ramas y etiquetas
 
 Durante el desarrollo se utilizan las siguientes referencias:
 
@@ -358,7 +358,7 @@ Durante el desarrollo se utilizan las siguientes referencias:
 
 ---
 
-# 7. Resumen del proceso
+7. Resumen del proceso
 
 El proceso completo de despliegue es:
 
@@ -409,7 +409,7 @@ tarea-01-entrega
 
 ---
 
-# 8. Resultado esperado
+8. Resultado esperado
 
 Al finalizar la tarea se debe disponer de una instalación local y reproducible de **Attendize v2.8.0**, ejecutándose mediante Docker y con:
 
@@ -424,8 +424,8 @@ Al finalizar la tarea se debe disponer de una instalación local y reproducible 
 - Etiqueta `tarea-01-entrega` correspondiente a la versión final.
 - Sin credenciales, claves privadas ni datos personales reales en el repositorio.
 
-**Versión de Attendize:** `v2.8.0`  
-**Tarea:** `01 - Despliegue local reproducible`
+Versión de Attendize:** `v2.8.0`  
+Tarea: `01 - Despliegue local reproducible`
 	
 
 
