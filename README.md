@@ -12,14 +12,16 @@ El objetivo de esta tarea es disponer de una instalación reproducible de Attend
 
 Para realizar el despliegue se utiliza el repositorio oficial de Attendize:
 
-- **Repositorio:** https://github.com/Attendize/Attendize
-- **Versión:** `v2.8.0`
+- Repositorio: https://github.com/Attendize/Attendize
+- Versión: `v2.8.0`
+- Rama de trabajo: `tarea-01-despliegue`
+- Etiqueta de entrega: `tarea-01-entrega`
 
 Requisitos previos
 
 Antes de comenzar es necesario disponer de:
 
-- [Docker Desktop](https://www.docker.com/products/docker-desktop/)
+- [Docker Desktop] version 29.4.1 (https://www.docker.com/products/docker-desktop/)
 - Git
 - Git Bash
 - Sistema operativo anfitrión:
@@ -31,16 +33,22 @@ Antes de comenzar es necesario disponer de:
 
 1.2 Arquitectura y servicios
 
-El entorno de Attendize está compuesto por **cuatro contenedores interconectados**:
+El entorno de Attendize está compuesto por cuatro contenedores interconectados:
 
 | Servicio | Descripción |
 |---|---|
-| **Web** | Nginx + PHP. Servidor y motor de la aplicación Laravel. |
-| **MySQL** | Base de datos relacional para almacenar organizadores, eventos y usuarios. |
-| **Redis** | Sistema de caché en memoria utilizado para mejorar el rendimiento y gestionar colas de trabajo. |
-| **Maildev** | Servidor SMTP local para capturar y probar los correos electrónicos enviados por la aplicación. |
+| Web | Nginx + PHP. Servidor y motor de la aplicación Laravel. |
+| MySQL | Base de datos relacional para almacenar organizadores, eventos y usuarios. |
+| Redis | Sistema de caché en memoria utilizado para mejorar el rendimiento y gestionar colas de trabajo. |
+| Maildev | Servidor SMTP local para capturar y probar los correos electrónicos enviados por la aplicación. |
 
 Todos los servicios se ejecutan dentro de la red interna de Docker.
+
+1.3 Puertos, Red y Volúmenes
+
+* Red:Red interna de Docker (`attendize_net` o similar).
+* Puertos principales: `8081` (Acceso HTTPS web), `3306` (MySQL interno), `1080` (Maildev).
+* Volúmenes: Volúmenes persistentes para MySQL para asegurar que los datos no se pierden al apagar los contenedores.
 
 ---
 
@@ -137,7 +145,7 @@ DB_HOST=db
 
 El valor `db` permite que Laravel se conecte al contenedor de MySQL mediante la red interna de Docker.
 
-> Importante: el archivo `.env` contiene configuración sensible y **no debe subirse al repositorio**.
+> Importante: el archivo `.env` contiene configuración sensible y no debe subirse al repositorio.
 
 Comprobar que Docker está correctamente instalado:
 
@@ -231,8 +239,8 @@ Al finalizar, la aplicación deberá estar disponible y permitir iniciar sesión
 Para comprobar que los datos de Attendize se almacenan correctamente:
 
 1. Acceder a la aplicación.
-2. Crear un **organizador**.
-3. Crear un **evento ficticio** asociado al organizador.
+2. Crear un organizador.
+3. Crear un evento ficticio asociado al organizador.
 4. Comprobar que el evento aparece correctamente.
 
 A continuación, detener los servicios:
@@ -427,7 +435,37 @@ Al finalizar la tarea se debe disponer de una instalación local y reproducible 
 Versión de Attendize:** `v2.8.0`  
 Tarea: `01 - Despliegue local reproducible`
 	
+-----------------------------------------------------------------------------------------------
 
+Incidencias y Soluciones durante el Despliegue
+
+Durante la puesta en marcha de la práctica, se resolvieron las siguientes incidencias clave:
+
+1. Gestión de dependencias PHP (Composer):
+   * Problema: El entorno requería instalar la carpeta `vendor` y las dependencias del proyecto antes de poder ejecutar los comandos de Laravel.
+   * Solución: Se ejecutó la instalación de dependencias de Composer mediante los scripts de inicialización (`setup`/script) integrados en el flujo de Docker.
+
+2. Sincronización inicial con MySQL:
+   * Problema: El contenedor web intentaba ejecutar las migraciones antes de que MySQL estuviera completamente listo, provocando un fallo de conexión.
+   * Solución: Se utilizó el comando `wait-for-it` en el puerto `3306` para garantizar que la base de datos aceptara conexiones antes de lanzar las migraciones.
+
+3. Advertencia de certificado SSL autofirmado:
+   * Problema: El navegador bloqueaba el acceso a `https://localhost:8081` por no reconocer el certificado SSL en local.
+   * Solución: Se aceptó manualmente la excepción de seguridad en el navegador para continuar con la instalación en desarrollo.
+
+
+Primer Acceso y Datos Ficticios de Comprobación
+
+Una vez completado el asistente en `https://localhost:8081/install`, se utilizaron los siguientes datos ficticios para verificar el funcionamiento:
+
+* Credenciales de Administrador:
+  * Correo electrónico: `admin@example.com`
+  * Contraseña:`Lola2023` 
+
+* Datos de prueba creados:
+  * Organizador ficticio: `Eventos Demo`
+  * Organizador Email: `Contacto@eventosdemo.com`
+  
 
 
 
